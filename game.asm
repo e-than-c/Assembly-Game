@@ -35,6 +35,7 @@
 ##################################################################### 
 .eqv  BASE_ADDRESS  0x10008000 
 .eqv PLAYER_COL 0x0000ff
+.eqv BACKGROUND 0x000000
 #.eqv PLY_MAX_X  # max x value that a player can move
 #.eqv PLY_MAX_Y	  # max y vaule that a player can move
   	# settings: unit width and height = 8, display width and height = 256
@@ -107,42 +108,71 @@ HandleKeypressW: # w was pressed
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
 	li $t1, PLAYER_COL # get player colour
-	# draw a pixel on row above
+	# drawing
+	li $t2, BACKGROUND # get background colour
+	sw $t2, 0($a0) # colour the character's old position black
 	subi $a0, $a0, 128 # one pixel above
-	sw $t1, 0($a0) # draw the actual pixel
-	j wait_key
+	sw $t1, 0($a0) # draw the pixel one row above
+	
+	# push updated address back on the stack
+	addi $sp, $sp, 4
+	sw $a0, 0($sp)
+	j redraw
 
 HandleKeypressA:
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
 	li $t1, PLAYER_COL # get player colour
+	# drawing
+	li $t2, BACKGROUND # get background colour
+	sw $t2, 0($a0) # colour the character's old position black
+
 	# draw a pixel one unit to the left
 	subi $a0, $a0, 4 # one pixel above
 	sw $t1, 0($a0) # draw the actual pixel
-	j wait_key
+	
+	# push updated address back on the stack
+	addi $sp, $sp, 4
+	sw $a0, 0($sp)
+	j redraw
+
 HandleKeypressS: # should i have a down button? or just rely on gravity?
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
 	li $t1, PLAYER_COL # get player colour
+	# drawing
+	li $t2, BACKGROUND # get background colour
+	sw $t2, 0($a0) # colour the character's old position black
+
 	# draw a pixel one unit down
 	addi $a0, $a0, 128 # one pixel below
 	sw $t1, 0($a0) # draw the actual pixel
-	j wait_key
+	# push updated address back on the stack
+	addi $sp, $sp, 4
+	sw $a0, 0($sp)
+	j redraw
 
 HandleKeypressD:
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
 	li $t1, PLAYER_COL # get player colour
+	# drawing
+	li $t2, BACKGROUND # get background colour
+	sw $t2, 0($a0) # colour the character's old position black
+
 	# draw a pixel one unit to the right
 	addi $a0, $a0, 4 # one pixel to the right
 	sw $t1, 0($a0) # draw the actual pixel
- 	j wait_key
+	# push updated address back on the stack
+	addi $sp, $sp, 4
+	sw $a0, 0($sp)
+	j redraw
 
 # put functions in here, before using main
 .globl main
 main:
 # change
-idle: 
+redraw: 
  	#j END
  	# draw out character position
  	lw $t0, 0($sp) # pop the player address into $t0
