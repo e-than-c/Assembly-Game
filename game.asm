@@ -101,7 +101,7 @@ HandleKeypressD:
 # put functions in here, before using main
 .globl main
 main:
-
+# change
 idle: 
  	#j END
  	# draw out character position
