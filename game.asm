@@ -52,19 +52,48 @@
  	#sw $t2, 64($t0)
  	#sw $t2, 256($t0)
  
- # draw main platform
+ # draw platform 1
     	li $t9, 0       # loop counter
  	li $t3, 8       # unit width and height
-    	li $t5, 2560   # y-coordinate of line
+    	li $t5, 3072   # y-coordinate of line
     	add $t6, $t0, $t5  # memory address of first pixel on line
-    	addi $t6, $t6, 48 #adjust for x coord shift, do # of pixels * 8
+    	addi $t6, $t6, 40 #adjust for x coord shift, do # of pixels * 8
 # loop to draw a line
-draw_main_plat:
+draw_plat1:
     sw $t1, 0($t6) # Set the pixel at the current memory address to red
     addi $t6, $t6, 4 # Move to the next pixel in the same row
     addi $t9, $t9, 1 # Increment the loop counter
-    beq $t9, 8, draw_ply_start # Exit loop when the line is complete
-    j draw_main_plat
+    beq $t9, 7, set_plat2 # Exit loop when the line is complete
+    j draw_plat1
+
+# draw platfrm 2
+set_plat2:
+	li $t0, BASE_ADDRESS
+    	li $t9, 0       # loop counter
+    	li $t5, 1792   # y-coordinate of line
+    	add $t6, $t0, $t5  # memory address of first pixel on line
+    	addi $t6, $t6, 72 #adjust for x coord shift, do # of pixels * 8
+draw_plat2:
+    sw $t1, 0($t6) # Set the pixel at the current memory address to red
+    addi $t6, $t6, 4 # Move to the next pixel in the same row
+    addi $t9, $t9, 1 # Increment the loop counter
+    beq $t9, 6, set_plat3 # Exit loop when the line is complete
+    j draw_plat2
+    
+# draw platform 3
+set_plat3:
+	li $t0, BASE_ADDRESS
+    	li $t9, 0       # loop counter
+    	li $t5, 768   # y-coordinate of line
+    	add $t6, $t0, $t5  # memory address of first pixel on line
+    	addi $t6, $t6, 8 #adjust for x coord shift, do # of pixels * 8
+draw_plat3:
+    sw $t1, 0($t6) # Set the pixel at the current memory address to red
+    addi $t6, $t6, 4 # Move to the next pixel in the same row
+    addi $t9, $t9, 1 # Increment the loop counter
+    beq $t9, 5, draw_ply_start # Exit loop when the line is complete
+    j draw_plat3
+	
     
 draw_ply_start:
 	li $t2, PLAYER_COL # get blue colour
@@ -84,18 +113,29 @@ HandleKeypressW: # w was pressed
 	j wait_key
 
 HandleKeypressA:
-	#sw $v0, action
-	addi $t3, $t3, 2
+	lw $a0, 0($sp) # pop player address off the stack
+	addi $sp, $sp, 4 # reclaim the space
+	li $t1, PLAYER_COL # get player colour
+	# draw a pixel one unit to the left
+	subi $a0, $a0, 4 # one pixel above
+	sw $t1, 0($a0) # draw the actual pixel
 	j wait_key
-HandleKeypressS:
-	#sw $v0, action
-	addi $t3, $t3, 3
+HandleKeypressS: # should i have a down button? or just rely on gravity?
+	lw $a0, 0($sp) # pop player address off the stack
+	addi $sp, $sp, 4 # reclaim the space
+	li $t1, PLAYER_COL # get player colour
+	# draw a pixel one unit down
+	addi $a0, $a0, 128 # one pixel below
+	sw $t1, 0($a0) # draw the actual pixel
 	j wait_key
 
 HandleKeypressD:
- 	#sw $t2, 260($t0)
- 	#sw $t2, 264($t0)
- 	addi $t3, $t3, 4
+	lw $a0, 0($sp) # pop player address off the stack
+	addi $sp, $sp, 4 # reclaim the space
+	li $t1, PLAYER_COL # get player colour
+	# draw a pixel one unit to the right
+	addi $a0, $a0, 4 # one pixel to the right
+	sw $t1, 0($a0) # draw the actual pixel
  	j wait_key
 
 # put functions in here, before using main
