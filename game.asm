@@ -35,14 +35,17 @@
 ##################################################################### 
 .eqv  BASE_ADDRESS  0x10008000 
 .eqv PLAYER_COL 0x0000ff
+.eqv HEAD_COL 0xcd853f
+.eqv ARM_COL 0x00ff00 
 .eqv BACKGROUND 0x000000
+
 #.eqv PLY_MAX_X  # max x value that a player can move
 #.eqv PLY_MAX_Y	  # max y vaule that a player can move
   	# settings: unit width and height = 8, display width and height = 256
  .data
 .text 
  	li $t0, BASE_ADDRESS # $t0 stores the base address for display 
- 	li $t1, 0xff0000   # $t1 stores the red colour code 
+ 	li $t1, 0x964B00   # $t1 stores the brown colour code 
  	li $t2, 0x00ff00   # $t2 stores the green colour code 
  	#li $t3, 0x0000ff   # $t3 stores the blue colour code 
   
@@ -92,27 +95,50 @@ draw_plat3:
     sw $t1, 0($t6) # Set the pixel at the current memory address to red
     addi $t6, $t6, 4 # Move to the next pixel in the same row
     addi $t9, $t9, 1 # Increment the loop counter
-    beq $t9, 5, draw_ply_start # Exit loop when the line is complete
+    beq $t9, 8, draw_ply_start # Exit loop when the line is complete
     j draw_plat3
 	
-    
+# the character must be at least 3 units! 
 draw_ply_start:
-	li $t2, PLAYER_COL # get blue colour
+	li $t2, PLAYER_COL # get character colour
+	li $t3, HEAD_COL # get head colour
+	li $t4, ARM_COL # get arm colour
 	subi $t6, $t6, 128 # y coord of char (each line is 128)
 	sub $t6, $t6, 16 # x coord (each pixel is 9)
-	sw $t2, 0($t6) 	# Draw the dot at the pixel
+	
+	# draw character
+	sw $t2, 0($t6) 	# base of character
+	sw $t2, -128($t6) # character body
+	sw $t4, -124($t6) # right arm
+	sw $t4, -132($t6) # left arm
+	sw $t3, -256($t6) # head of character
 	addi $sp, $sp, -4 # make space on the stack
 	sw $t6, 0($sp) # push the address of where the character starts onto the stack
  	j main
 HandleKeypressW: # w was pressed
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
+	# get colours
 	li $t1, PLAYER_COL # get player colour
-	# drawing
 	li $t2, BACKGROUND # get background colour
-	sw $t2, 0($a0) # colour the character's old position black
+	li $t3, HEAD_COL # get head colour
+	li $t4, ARM_COL # get arm colour
+	# drawing
+	
+	# colouring old position black
+	sw $t2, 0($a0) # character's foot
+	sw $t2, -128($a0) # character body
+	sw $t2, -124($a0) # right arm
+	sw $t2, -132($a0) # left arm
+	sw $t2, -256($a0) # head of character
+	
+	# drawing new character, everything moved one pixel up
 	subi $a0, $a0, 128 # one pixel above
-	sw $t1, 0($a0) # draw the pixel one row above
+	sw $t1, 0($a0) # redraw the foot
+	sw $t1, -128($a0) # character body
+	sw $t4, -124($a0) # right arm
+	sw $t4, -132($a0) # left arm
+	sw $t3, -256($a0) # head of character
 	
 	# push updated address back on the stack
 	addi $sp, $sp, 4
@@ -122,14 +148,27 @@ HandleKeypressW: # w was pressed
 HandleKeypressA:
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
+	# get colours
 	li $t1, PLAYER_COL # get player colour
-	# drawing
 	li $t2, BACKGROUND # get background colour
-	sw $t2, 0($a0) # colour the character's old position black
+	li $t3, HEAD_COL # get head colour
+	li $t4, ARM_COL # get arm colour
+
+	# drawing
+	# colouring old position black
+	sw $t2, 0($a0) # character's foot
+	sw $t2, -128($a0) # character body
+	sw $t2, -124($a0) # right arm
+	sw $t2, -132($a0) # left arm
+	sw $t2, -256($a0) # head of character
 
 	# draw a pixel one unit to the left
-	subi $a0, $a0, 4 # one pixel above
-	sw $t1, 0($a0) # draw the actual pixel
+	subi $a0, $a0, 4 # one pixel to the left
+	sw $t1, 0($a0) # character foot
+	sw $t1, -128($a0) # character body
+	sw $t4, -124($a0) # right arm
+	sw $t4, -132($a0) # left arm
+	sw $t3, -256($a0) # head of character
 	
 	# push updated address back on the stack
 	addi $sp, $sp, 4
@@ -139,14 +178,28 @@ HandleKeypressA:
 HandleKeypressS: # should i have a down button? or just rely on gravity?
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
+	# get colours
 	li $t1, PLAYER_COL # get player colour
-	# drawing
 	li $t2, BACKGROUND # get background colour
-	sw $t2, 0($a0) # colour the character's old position black
+	li $t3, HEAD_COL # get head colour
+	li $t4, ARM_COL # get arm colour
+	
+	# drawing
+	# colouring old position black
+	sw $t2, 0($a0) # character's foot
+	sw $t2, -128($a0) # character body
+	sw $t2, -124($a0) # right arm
+	sw $t2, -132($a0) # left arm
+	sw $t2, -256($a0) # head of character
 
 	# draw a pixel one unit down
-	addi $a0, $a0, 128 # one pixel below
-	sw $t1, 0($a0) # draw the actual pixel
+	addi $a0, $a0, 128 # one pixel down
+	sw $t1, 0($a0) # character foot
+	sw $t1, -128($a0) # character body
+	sw $t4, -124($a0) # right arm
+	sw $t4, -132($a0) # left arm
+	sw $t3, -256($a0) # head of character
+	
 	# push updated address back on the stack
 	addi $sp, $sp, 4
 	sw $a0, 0($sp)
@@ -155,14 +208,29 @@ HandleKeypressS: # should i have a down button? or just rely on gravity?
 HandleKeypressD:
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
+	
+	# get colours
 	li $t1, PLAYER_COL # get player colour
-	# drawing
 	li $t2, BACKGROUND # get background colour
-	sw $t2, 0($a0) # colour the character's old position black
+	li $t3, HEAD_COL # get head colour
+	li $t4, ARM_COL # get arm colour
+	
+	# drawing
+	# colouring old position black
+	sw $t2, 0($a0) # character's foot
+	sw $t2, -128($a0) # character body
+	sw $t2, -124($a0) # right arm
+	sw $t2, -132($a0) # left arm
+	sw $t2, -256($a0) # head of character
 
 	# draw a pixel one unit to the right
-	addi $a0, $a0, 4 # one pixel to the right
-	sw $t1, 0($a0) # draw the actual pixel
+	addi $a0, $a0, 4 # one pixel right
+	sw $t1, 0($a0) # character foot
+	sw $t1, -128($a0) # character body
+	sw $t4, -124($a0) # right arm
+	sw $t4, -132($a0) # left arm
+	sw $t3, -256($a0) # head of character
+	
 	# push updated address back on the stack
 	addi $sp, $sp, 4
 	sw $a0, 0($sp)
