@@ -103,8 +103,10 @@ draw_ply_start:
 	li $t2, PLAYER_COL # get character colour
 	li $t3, HEAD_COL # get head colour
 	li $t4, ARM_COL # get arm colour
-	subi $t6, $t6, 128 # y coord of char (each line is 128)
-	sub $t6, $t6, 16 # x coord (each pixel is 9)
+	#subi $t6, $t6, 128 # y coord of char (each line is 128)
+	#sub $t6, $t6, 16 # x coord (each pixel is 9)
+	li $t6, BASE_ADDRESS
+	addi $t6, $t6, 652
 	
 	# draw character
 	sw $t2, 0($t6) 	# base of character
@@ -236,12 +238,27 @@ HandleKeypressD:
 	sw $a0, 0($sp)
 	j redraw
 
+HandleKeypressP:
+	# reset character to starting position
+	# get character address from the stack
+	lw $a0, 0($sp) # pop player address off the stack
+	addi $sp, $sp, 4 # reclaim the space
+	li $t2, BACKGROUND # get background colour
+	# drawing
+	# colouring old position black
+	sw $t2, 0($a0) # character's foot
+	sw $t2, -128($a0) # character body
+	sw $t2, -124($a0) # right arm
+	sw $t2, -132($a0) # left arm
+	sw $t2, -256($a0) # head of character
+	
+	# redraw character in starting position
+	j draw_ply_start
 # put functions in here, before using main
 .globl main
 main:
 # change
 redraw: 
- 	#j END
  	# draw out character position
  	lw $t0, 0($sp) # pop the player address into $t0
 	addi $sp, $sp, 4 # reclaim space 
@@ -262,6 +279,7 @@ HandleKeypress:
  	beq $t2, 0x61, HandleKeypressA # ASCII for 'a'
  	beq $t2, 0x73, HandleKeypressS # ASCII for 's'
  	beq $t2, 0x64, HandleKeypressD # ASCII for 'd'
+ 	beq $t2, 0x70, HandleKeypressP # ASCII for 'p'
  	beq $t2, 0x1b, QUIT # ASCII for 'ESC', to quit game
  	j wait_key # go back to waiting for a keypress
 
