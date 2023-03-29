@@ -118,15 +118,23 @@ draw_ply_start:
 	sw $t6, 0($sp) # push the address of where the character starts onto the stack
  	j main
 HandleKeypressW: # w was pressed
+	# get address of top right corner
+	li $a1, 0x1000807C
+	
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
+	
+	la $t5, -256($a0) # load character head 
+	# check if character going out of bounds
+	# currrent location < top boundary then do nothing
+	blt $t5, $a1, wait_key
 	# get colours
 	li $t1, PLAYER_COL # get player colour
 	li $t2, BACKGROUND # get background colour
 	li $t3, HEAD_COL # get head colour
 	li $t4, ARM_COL # get arm colour
 	# drawing
-	
+
 	# colouring old position black
 	sw $t2, 0($a0) # character's foot
 	sw $t2, -128($a0) # character body
@@ -155,7 +163,14 @@ HandleKeypressA:
 	li $t2, BACKGROUND # get background colour
 	li $t3, HEAD_COL # get head colour
 	li $t4, ARM_COL # get arm colour
-
+	
+	# checking left boundary
+	la $t5, -132($a0) # left arm
+	# divide
+	li $t6, 128
+	div $t5, $t6
+	mfhi $t7
+	beq $t7, $zero, wait_key
 	# drawing
 	# colouring old position black
 	sw $t2, 0($a0) # character's foot
@@ -178,8 +193,16 @@ HandleKeypressA:
 	j redraw
 
 HandleKeypressS: # should i have a down button? or just rely on gravity?
+	# get address of bottom left corner
+	li $a1, 0x10008f80
+	
 	lw $a0, 0($sp) # pop player address off the stack
 	addi $sp, $sp, 4 # reclaim the space
+	
+	# handling out of bounds bottom case
+	la $t5, 0($a0) # get address of foot
+	blt $a1, $t5, wait_key
+	
 	# get colours
 	li $t1, PLAYER_COL # get player colour
 	li $t2, BACKGROUND # get background colour
@@ -216,6 +239,22 @@ HandleKeypressD:
 	li $t2, BACKGROUND # get background colour
 	li $t3, HEAD_COL # get head colour
 	li $t4, ARM_COL # get arm colour
+	
+	# check right boundary
+	#la $t5, -124($a0) # right arm
+	# divide
+	#li $t6, 256
+	#div $t5, $t6
+	#mfhi $t7 # store remainder of the division in t7
+	#li $t8, 248 # store
+	#beq $t7, $t8, wait_key
+	la $t5, -124($a0) # right arm
+	li $t7, 128 # set $t7 to width
+        div $t5, $t7
+        mfhi $k0
+        addi $t7, $t7, -4
+        beq $k0, $t7, wait_key
+	
 	
 	# drawing
 	# colouring old position black
