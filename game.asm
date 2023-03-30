@@ -67,7 +67,7 @@ draw_plat1:
     sw $t1, 0($t6) # Set the pixel at the current memory address to red
     addi $t6, $t6, 4 # Move to the next pixel in the same row
     addi $t9, $t9, 1 # Increment the loop counter
-    beq $t9, 7, set_plat2 # Exit loop when the line is complete
+    beq $t9, 8, set_plat2 # Exit loop when the line is complete
     j draw_plat1
 
 # draw platfrm 2
@@ -95,8 +95,48 @@ draw_plat3:
     sw $t1, 0($t6) # Set the pixel at the current memory address to red
     addi $t6, $t6, 4 # Move to the next pixel in the same row
     addi $t9, $t9, 1 # Increment the loop counter
-    beq $t9, 8, draw_ply_start # Exit loop when the line is complete
+    beq $t9, 8, fire # Exit loop when the line is complete
     j draw_plat3
+    
+fire: # damages character (turn red), does not disappear
+    li $t0, 0xff0000 # stores red colour
+    li $t1 0xffff00 #stores yellow colour
+
+    li $t3, BASE_ADDRESS
+    li $t4, 1664   # y-coordinate of line
+    add $t6, $t3, $t4  # memory address of first pixel on line
+    addi $t6, $t6, 92 #adjust for x coord shift, do # of pixels * 
+
+        # drawing the cross
+    sw $t0, -132($t6) # left arm of flame
+    sw $t0, -124($t6) # right arm of flame
+    sw $t0, -128($t6) # centre of flame
+    sw $t0, -252($t6) # top right
+    sw $t0, -260($t6) # top left
+    sw $t1, 0($t6) # bottom of flame, yellow
+    sw $t0, -4($t6) # bottom left
+    sw $t0, 4($t6) # bottom right
+    
+flag:
+    li $t0, 0xffffff # stores white olcour
+    li $t1, 0x8968cd # stores lavendar
+    li $t2, 0x800080
+    li $t3, BASE_ADDRESS
+    li $t4, 2944   # y-coordinate of line
+    add $t6, $t3, $t4  # memory address of first pixel on line
+    addi $t6, $t6, 40 #adjust for x coord shift, do # of pixels * 
+
+        # drawing the flag
+    sw $t0, -128($t6) # centre of flag
+    sw $t0, -256($t6) # second top of flag
+    sw $t1, -252($t6)
+    sw $t2, -248($t6)
+    
+    sw $t0, -384($t6) # top of flag
+    sw $t2, -380($t6)
+    sw $t1, -376($t6)
+    sw $t0, 0($t6) # bottom of flag
+    
 	
 # the character must be at least 3 units! 
 draw_ply_start:
@@ -114,6 +154,7 @@ draw_ply_start:
 	sw $t4, -124($t6) # right arm
 	sw $t4, -132($t6) # left arm
 	sw $t3, -256($t6) # head of character
+
 	addi $sp, $sp, -4 # make space on the stack
 	sw $t6, 0($sp) # push the address of where the character starts onto the stack
  	j main
